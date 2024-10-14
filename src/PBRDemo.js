@@ -7,13 +7,16 @@ const vertexShader = `
   varying vec3 vNormal;
   varying vec3 vViewPosition;
   varying vec2 vUv;
+  varying vec3 vWorldPosition;
 
   void main() {
     vUv = uv;
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mvPosition;
     
     vViewPosition = -mvPosition.xyz;
+    vWorldPosition = worldPosition.xyz;
     vNormal = normalMatrix * normal;
   }
 `;
@@ -28,6 +31,7 @@ const fragmentShader = `
   varying vec3 vNormal;
   varying vec3 vViewPosition;
   varying vec2 vUv;
+  varying vec3 vWorldPosition;
 
   const float PI = 3.14159265359;
 
@@ -55,8 +59,8 @@ const fragmentShader = `
 
   void main() {
     vec3 N = normalize(vNormal);
-    vec3 V = normalize(uCameraPosition - vViewPosition);
-    vec3 L = normalize(uLightPosition - vViewPosition);
+    vec3 V = normalize(uCameraPosition - vWorldPosition);
+    vec3 L = normalize(uLightPosition - vWorldPosition);
     vec3 H = normalize(V + L);
     
     float NdotV = max(dot(N, V), 0.0);
@@ -109,9 +113,9 @@ const PBRDemo = () => {
     const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        uAlbedo: { value: new THREE.Color(0.5, 0.0, 0.0) },
-        uMetalness: { value: 0.5 },
-        uRoughness: { value: 0.5 },
+        uAlbedo: { value: new THREE.Color(0x70f915) },
+        uMetalness: { value: 0.201 },
+        uRoughness: { value: 0.115 },
         uLightPosition: { value: new THREE.Vector3(5, 5, 5) },
         uCameraPosition: { value: camera.position }
       },
@@ -165,8 +169,8 @@ const PBRDemo = () => {
     // 动画循环
     const animate = () => {
       requestAnimationFrame(animate);
-      torusKnot.rotation.x += 0.01;
-      torusKnot.rotation.y += 0.01;
+      // torusKnot.rotation.x += 0.01;
+      // torusKnot.rotation.y += 0.01;
       controls.update();
       material.uniforms.uCameraPosition.value.copy(camera.position);
       renderer.render(scene, camera);
